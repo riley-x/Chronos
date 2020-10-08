@@ -112,7 +112,7 @@ public:
 	}
 
 	// NOTE: when drawing lines, need to align to 0.5 boundaries. Use hp() below.
-	// Use D2D1_STROKE_TRANSFORM_TYPE_HAIRLINE in future
+	// Alternatively, use D2D1_STROKE_TRANSFORM_TYPE_HAIRLINE in future
 	static inline float hpx() { return halfPX; }
 	static inline float hpy() { return halfPY; }
 	static inline float px() { return fullPX; }

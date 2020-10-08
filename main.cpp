@@ -1,5 +1,4 @@
 // Chronos.cpp : Defines the entry point for the application.
-//
 
 #include "pch.h"
 #include "Chronos.h"
@@ -33,8 +32,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	args.lpWindowName = szTitle;
 	args.x = 1200;
 	args.y = 700;
-	args.nWidth = 100;
-	args.nHeight = 40;
+	args.nWidth = 400;
+	args.nHeight = 400;
 
 	win.Register(args);
 	if (!win.Create(args))

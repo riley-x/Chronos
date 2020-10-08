@@ -6,19 +6,48 @@
 
 class D2Objects
 {
+
 public:
-	HWND					hwndParent = NULL;
+	enum Formats { Segoe10, Segoe12, Segoe14, Segoe18, nFormats };
 
-	////////////////////////////////////////////////////////
-	// Data
+	void CreateLifetimeResources(HWND hwnd);
+	HRESULT	CreateGraphicsResources(HWND hwnd);
+	void	DiscardLifetimeResources();
+	void	DiscardGraphicsResources();
 
-	// Direct Write
-	static const int nFormats = 4;
-	enum Formats { Segoe10, Segoe12, Segoe14, Segoe18 };
+	ID2D1DeviceContext* dc() const { return deviceContext.Get(); }
+	ID2D1SolidColorBrush* brush() const { return solidBrush.Get(); }
+	IDXGISwapChain1* swapChain() const { return m_swapChain.Get(); }
 
-	////////////////////////////////////////////////////////
-	// Pointers
+private:
 
+	HWND hwndParent = nullptr;
+
+	// Boilerplate
+	ComPtr<ID3D11Device> direct3dDevice;
+	ComPtr<IDXGIDevice> dxgiDevice;
+	ComPtr<IDXGIFactory2> dxFactory;
+	ComPtr<ID2D1Factory2> d2Factory;
+	ComPtr<ID2D1Device1> d2Device;
+	ComPtr<IDXGISurface2> surface;
+	ComPtr<ID2D1Bitmap1> bitmap;
+	ComPtr<IDCompositionDevice> dcompDevice;
+	ComPtr<IDCompositionTarget> target;
+	ComPtr<IDCompositionVisual> visual;
+
+	// Useful
+	ComPtr<IDXGISwapChain1> m_swapChain;
+	ComPtr<ID2D1DeviceContext> deviceContext;
+	ComPtr<ID2D1SolidColorBrush> solidBrush;
+
+	// Styles
+	ID2D1StrokeStyle* pDashedStyle = NULL;
+	ID2D1StrokeStyle1* pFixedTransformStyle = NULL;
+	ID2D1StrokeStyle1* pHairlineStyle = NULL;
+
+
+
+	/*
 	// Rendering 
 	ID2D1Factory1* pFactory = NULL;
 	ID3D11Device1* pDirect3DDevice = NULL;
@@ -37,15 +66,12 @@ public:
 	// Direct Write pointers
 	IDWriteFactory1* pDWriteFactory = NULL;
 	IDWriteTextFormat* pTextFormats[nFormats] = {};
-
+	*/
 
 	////////////////////////////////////////////////////////
 	// Functions
 
-	HRESULT CreateLifetimeResources(HWND hwnd);
-	HRESULT	CreateGraphicsResources(HWND hwnd);
-	void	DiscardLifetimeResources();
-	void	DiscardGraphicsResources();
+
 };
 
 

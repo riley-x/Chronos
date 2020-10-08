@@ -11,6 +11,113 @@ template <class T> void SafeRelease(T** ppT)
 	}
 }
 
+struct ComException
+{
+	HRESULT result;
+	ComException(HRESULT const value) :
+		result(value)
+	{}
+};
+void HR(HRESULT const result)
+{
+	if (S_OK != result)
+	{
+		throw ComException(result);
+	}
+}
+
+
+void D2Objects::CreateLifetimeResources(HWND window)
+{
+	m_hwndParent = window;
+
+	HR(D3D11CreateDevice(nullptr,    // Adapter
+		D3D_DRIVER_TYPE_HARDWARE,
+		nullptr,    // Module
+		D3D11_CREATE_DEVICE_BGRA_SUPPORT,
+		nullptr, 0, // Highest available feature level
+		D3D11_SDK_VERSION,
+		&direct3dDevice,
+		nullptr,    // Actual feature level
+		nullptr));  // Device context
+
+	HR(direct3dDevice.As(&dxgiDevice));
+
+	HR(CreateDXGIFactory2(
+		DXGI_CREATE_FACTORY_DEBUG,
+		__uuidof(dxFactory),
+		reinterpret_cast<void**>(dxFactory.GetAddressOf())));
+
+	DXGI_SWAP_CHAIN_DESC1 description = {};
+	description.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	description.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	description.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+	description.BufferCount = 2;
+	description.SampleDesc.Count = 1;
+	description.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
+
+	RECT rect = {};
+	GetClientRect(window, &rect);
+	description.Width = rect.right - rect.left;
+	description.Height = rect.bottom - rect.top;
+
+	HR(dxFactory->CreateSwapChainForComposition(dxgiDevice.Get(),
+		&description,
+		nullptr, // Don’t restrict
+		swapChain.GetAddressOf()));
+
+	// Create a single-threaded Direct2D factory with debugging information
+	D2D1_FACTORY_OPTIONS const options = { D2D1_DEBUG_LEVEL_INFORMATION };
+	HR(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED,
+		options,
+		d2Factory.GetAddressOf()));
+	// Create the Direct2D device that links back to the Direct3D device
+	HR(d2Factory->CreateDevice(dxgiDevice.Get(),
+		d2Device.GetAddressOf()));
+	// Create the Direct2D device context that is the actual render target
+	// and exposes drawing commands
+	HR(d2Device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
+		deviceContext.GetAddressOf()));
+	// Retrieve the swap chain's back buffer
+	HR(swapChain->GetBuffer(
+		0, // index
+		__uuidof(surface),
+		reinterpret_cast<void**>(surface.GetAddressOf())));
+	// Create a Direct2D bitmap that points to the swap chain surface
+	D2D1_BITMAP_PROPERTIES1 properties = {};
+	properties.pixelFormat.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED;
+	properties.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	properties.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET |
+		D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
+	HR(deviceContext->CreateBitmapFromDxgiSurface(surface.Get(),
+		properties,
+		bitmap.GetAddressOf()));
+	// Point the device context to the bitmap for rendering
+	deviceContext->SetTarget(bitmap.Get());
+
+	HR(DCompositionCreateDevice(
+		dxgiDevice.Get(),
+		__uuidof(dcompDevice),
+		reinterpret_cast<void**>(dcompDevice.GetAddressOf())));
+
+
+	HR(dcompDevice->CreateTargetForHwnd(window,
+		true, // Top most
+		target.GetAddressOf()));
+
+	HR(dcompDevice->CreateVisual(visual.GetAddressOf()));
+	HR(visual->SetContent(swapChain.Get()));
+	HR(target->SetRoot(visual.Get()));
+	HR(dcompDevice->Commit());
+
+	D2D1_COLOR_F const brushColor = D2D1::ColorF(0.18f,  // red
+		0.55f,  // green
+		0.34f,  // blue
+		0.75f); // alpha
+	HR(deviceContext->CreateSolidColorBrush(brushColor,
+		solidBrush.GetAddressOf()));
+}
+
 
 HRESULT D2Objects::CreateLifetimeResources(HWND hwnd)
 {
@@ -112,6 +219,7 @@ HRESULT D2Objects::CreateLifetimeResources(HWND hwnd)
 	swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD; // see https://docs.microsoft.com/en-us/windows/desktop/direct3ddxgi/dxgi-flip-model
 	swapChainDesc.Flags = 0;
+	//swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_PREMULTIPLIED;
 
 	// Create DXGI swap chain targeting a window handle
 	if (SUCCEEDED(hr))
@@ -211,13 +319,14 @@ HRESULT D2Objects::CreateLifetimeResources(HWND hwnd)
 		}
 	}
 	
+	// Create main brush
 	if (SUCCEEDED(hr))
 	{
 		const D2D1_COLOR_F color = D2D1::ColorF(0.15f, 0.15f, 0.16f);
 		hr = pD2DContext->CreateSolidColorBrush(color, &pBrush);
 	}
-	// Re-create D2DBitmap it from the source bitmap.
 
+	D2D1_PIXEL_FORMAT format = pD2DContext->GetPixelFormat();
 
 	return hr;
 }
@@ -240,7 +349,7 @@ HRESULT D2Objects::CreateGraphicsResources(HWND hwnd)
 		// swap chain associated with the window.
 		D2D1_BITMAP_PROPERTIES1 bitmapProperties = D2D1::BitmapProperties1(
 			D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-			D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_IGNORE),
+			D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
 			DPIScale::DPIX(),
 			DPIScale::DPIY()
 		);

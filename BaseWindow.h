@@ -74,10 +74,8 @@ class BaseWindow
 public:
 
 	// Statics
-	static DWORD const aero_borderless_style =
-		WS_POPUP | WS_THICKFRAME | WS_CAPTION | WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX;
-	static DWORD const test_style =
-		WS_POPUP;
+	static DWORD const style = WS_POPUP | WS_VISIBLE;
+	static DWORD const exStyle = WS_EX_NOREDIRECTIONBITMAP;
 
 	// Constructors
 	BaseWindow() : m_wsClassName(L"BASE WINDOW"), m_hwnd(NULL), m_hInstance(NULL) { }
@@ -106,23 +104,16 @@ public:
 		return (atom ? TRUE : FALSE);
 	}
 
-	BOOL Create(WndCreateArgs& args) {
-
-		//if (args.dwStyle == WS_OVERLAPPEDWINDOW) args.dwStyle = aero_borderless_style;
-		if (args.dwStyle == WS_OVERLAPPEDWINDOW) args.dwStyle = test_style;
-		if (args.dwExStyle == 0) args.dwExStyle = WS_EX_LAYERED;
+	BOOL Create(WndCreateArgs& args) 
+	{
+		args.dwStyle = style;
+		args.dwExStyle = exStyle;
 
 		m_hInstance = args.hInstance;
 		m_hwnd = CreateWindowEx(
 			args.dwExStyle, ClassName(), args.lpWindowName, args.dwStyle, args.x, args.y,
 			args.nWidth, args.nHeight, args.hWndParent, args.hMenu, args.hInstance, this
 		);
-
-		static const MARGINS shadow_state{ 1,1,1,1 };
-		::DwmExtendFrameIntoClientArea(this->m_hwnd, &shadow_state);
-
-		// redraw frame
-		::SetWindowPos(this->m_hwnd, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
 
 		return (m_hwnd ? TRUE : FALSE);
 	}
@@ -150,30 +141,17 @@ public:
 			// Either return in case, or on break, return derivedClass->HandleMessage()
 			switch (uMsg)
 			{
-			case WM_NCCALCSIZE: // processing this message prevents the caption from appearing
-			{
-				if (wParam == TRUE)
-				{
-					auto& params = *reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
-					adjust_maximized_client_rect(hwnd, params.rgrc[0]);
-					return 0;
-				}
-				break;
-			}
 			case WM_NCHITTEST:
 			{
 				// When we have no border or title bar, we need to perform our own hit testing to allow resizing and moving.
-				LRESULT ret = pThis->hit_test(POINT{
+				return pThis->hit_test(POINT{
 					GET_X_LPARAM(lParam),
 					GET_Y_LPARAM(lParam)
 				});
-				if (ret != HTCLIENT) return ret;
-				break;
 			}
 			default:
 				break;
 			}
-
 			return pThis->HandleMessage(uMsg, wParam, lParam);
 		}
 		else

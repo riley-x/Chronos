@@ -131,70 +131,32 @@ LRESULT Chronos::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 LRESULT Chronos::OnCreate()
 {
-	SetLayeredWindowAttributes(m_hwnd, 0, 0, LWA_ALPHA);
-	SetLayeredWindowAttributes(m_hwnd, RGB(0, 0, 0), 0, LWA_COLORKEY); // Set black to be full transparent
-	HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = m_d2.CreateLifetimeResources(m_hwnd);
-		m_d2.hwndParent = m_hwnd;
-	}
-	if (FAILED(hr))
-	{
-		throw Error(L"OnCreate failed!");
-		return -1;  // Fail CreateWindowEx.
-	}
-
-	
+	HR(CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE));
+	m_d2.CreateLifetimeResources(m_hwnd);
 	return 0;
 }
 
 
 LRESULT Chronos::OnPaint()
 {
+	m_d2.CreateGraphicsResources(m_hwnd);
+
+	PAINTSTRUCT ps;
+	BeginPaint(m_hwnd, &ps);
+
 	RECT rc;
-	BOOL bErr = GetClientRect(m_hwnd, &rc);
-	if (bErr == 0) OutputError(L"GetClientRect failed");
+	GetClientRect(m_hwnd, &rc);
+	D2D1_RECT_F updateRect = DPIScale::PixelsToDips(ps.rcPaint);
 
-	HRESULT hr = m_d2.CreateGraphicsResources(m_hwnd);
-	if (SUCCEEDED(hr))
-	{
-		PAINTSTRUCT ps;
-		BeginPaint(m_hwnd, &ps);
-		D2D1_RECT_F dipRect = DPIScale::PixelsToDips(ps.rcPaint);
-		m_d2.pD2DContext->BeginDraw();
+	m_d2.dc()->BeginDraw();
+	m_d2.dc()->Clear();
 
-		m_d2.pD2DContext->Clear(D2D1::ColorF(0.0f, 0.0f, 0.0f, 1.0f));
+	m_d2.brush()->SetColor(D2D1::ColorF(0.6f, 0.0f, 0.7f, 0.5f));
+	m_d2.dc()->FillEllipse({ {20, 20}, 10, 10 }, m_d2.brush());
+	HR(m_d2.dc()->EndDraw());
 
-		m_d2.pBrush->SetColor(D2D1::ColorF(0.8f, 0.8f, 0.8f, 1.0f));
-		OutputDebugString(L"HIHI\n\n");
-		m_d2.pD2DContext->DrawText(
-			L"Hello World!",
-			static_cast<UINT32>(12),
-			m_d2.pTextFormats[m_d2.Segoe12],
-			dipRect,
-			m_d2.pBrush
-		);
+	HR(m_d2.swapChain()->Present(1, 0)); 
 
-
-		hr = m_d2.pD2DContext->EndDraw();
-
-		if (SUCCEEDED(hr))
-		{
-			// Present
-			DXGI_PRESENT_PARAMETERS parameters = { 0 };
-			parameters.DirtyRectsCount = 0;
-			parameters.pDirtyRects = nullptr;
-			parameters.pScrollRect = nullptr;
-			parameters.pScrollOffset = nullptr;
-
-			hr = m_d2.pDXGISwapChain->Present1(1, 0, &parameters);
-		}
-
-		EndPaint(m_hwnd, &ps);
-	}
-	if (FAILED(hr)) OutputHRerr(hr, L"OnPaint failed");
-
+	EndPaint(m_hwnd, &ps);
 	return 0;
 }
