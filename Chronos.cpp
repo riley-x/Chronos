@@ -49,8 +49,6 @@ LRESULT Chronos::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	//	return 0;
 	//}
 	case WM_DESTROY:
-		m_d2.DiscardGraphicsResources();
-		m_d2.DiscardLifetimeResources();
 		CoUninitialize();
 		PostQuitMessage(0);
 		return 0;
@@ -140,6 +138,7 @@ LRESULT Chronos::OnCreate()
 LRESULT Chronos::OnPaint()
 {
 	m_d2.CreateGraphicsResources(m_hwnd);
+	OutputDebugString(L"Paint\n");
 
 	PAINTSTRUCT ps;
 	BeginPaint(m_hwnd, &ps);
@@ -152,7 +151,7 @@ LRESULT Chronos::OnPaint()
 	m_d2.dc()->Clear();
 
 	m_d2.brush()->SetColor(D2D1::ColorF(0.6f, 0.0f, 0.7f, 0.5f));
-	m_d2.dc()->FillEllipse({ {20, 20}, 10, 10 }, m_d2.brush());
+	m_d2.dc()->FillEllipse({ {50, 50}, 50, 50 }, m_d2.brush());
 	HR(m_d2.dc()->EndDraw());
 
 	HR(m_d2.swapChain()->Present(1, 0)); 

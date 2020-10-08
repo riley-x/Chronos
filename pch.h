@@ -20,11 +20,13 @@
 #include <d2d1_2helper.h>
 #include <dcomp.h>
 #include <comdef.h>
+#include <dwrite_1.h>
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "dxgi")
 #pragma comment(lib, "d3d11")
 #pragma comment(lib, "d2d1")
 #pragma comment(lib, "dcomp")
+#pragma comment(lib, "dwrite")
 //#pragma comment(lib, "comsuppw.lib")
 
 using Microsoft::WRL::ComPtr;

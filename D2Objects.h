@@ -11,9 +11,8 @@ public:
 	enum Formats { Segoe10, Segoe12, Segoe14, Segoe18, nFormats };
 
 	void CreateLifetimeResources(HWND hwnd);
-	HRESULT	CreateGraphicsResources(HWND hwnd);
-	void	DiscardLifetimeResources();
-	void	DiscardGraphicsResources();
+	void CreateGraphicsResources(HWND hwnd);
+	void DiscardGraphicsResources();
 
 	ID2D1DeviceContext* dc() const { return deviceContext.Get(); }
 	ID2D1SolidColorBrush* brush() const { return solidBrush.Get(); }
@@ -21,7 +20,7 @@ public:
 
 private:
 
-	HWND hwndParent = nullptr;
+	HWND m_hwndParent = nullptr;
 
 	// Boilerplate
 	ComPtr<ID3D11Device> direct3dDevice;
@@ -34,43 +33,24 @@ private:
 	ComPtr<IDCompositionDevice> dcompDevice;
 	ComPtr<IDCompositionTarget> target;
 	ComPtr<IDCompositionVisual> visual;
+	ComPtr<IDWriteFactory1> pDWriteFactory;
 
-	// Useful
+	// User
 	ComPtr<IDXGISwapChain1> m_swapChain;
 	ComPtr<ID2D1DeviceContext> deviceContext;
 	ComPtr<ID2D1SolidColorBrush> solidBrush;
 
 	// Styles
-	ID2D1StrokeStyle* pDashedStyle = NULL;
-	ID2D1StrokeStyle1* pFixedTransformStyle = NULL;
-	ID2D1StrokeStyle1* pHairlineStyle = NULL;
+	ComPtr<ID2D1StrokeStyle> pDashedStyle;
+	ComPtr<ID2D1StrokeStyle1> pFixedTransformStyle;
+	ComPtr<ID2D1StrokeStyle1> pHairlineStyle;
+	ComPtr<IDWriteTextFormat> pTextFormats[nFormats];
 
-
-
-	/*
-	// Rendering 
-	ID2D1Factory1* pFactory = NULL;
-	ID3D11Device1* pDirect3DDevice = NULL;
-	ID3D11DeviceContext1* pDirect3DContext = NULL;
-	ID2D1Device* pDirect2DDevice = NULL;
-	ID2D1DeviceContext* pD2DContext = NULL; // inherits from ID2D1RenderTarget (?); use similarly
-	IDXGISwapChain1* pDXGISwapChain = NULL; // stores buffers that the d2dcontext targets
-	ID2D1Bitmap1* pDirect2DBackBuffer = NULL; // actual bitmap that the d2dcontext targets
-
-	// Drawing
-	ID2D1StrokeStyle* pDashedStyle = NULL;
-	ID2D1StrokeStyle1* pFixedTransformStyle = NULL;
-	ID2D1StrokeStyle1* pHairlineStyle = NULL;
-	ID2D1SolidColorBrush* pBrush = NULL;
-
-	// Direct Write pointers
-	IDWriteFactory1* pDWriteFactory = NULL;
-	IDWriteTextFormat* pTextFormats[nFormats] = {};
-	*/
 
 	////////////////////////////////////////////////////////
 	// Functions
 
+	void CreateDrawingResources();
 
 };
 

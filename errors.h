@@ -18,7 +18,7 @@ inline void OutputHRerr(HRESULT hr, const std::wstring& msg)
 	OutputMessage(msg + L": (0x%lx) %s\n", hr, err.ErrorMessage());
 }
 
-void HR(HRESULT hr)
+inline void HR(HRESULT hr)
 {
 	if (FAILED(hr))
 	{
