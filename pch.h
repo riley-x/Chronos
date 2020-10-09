@@ -44,6 +44,7 @@ using Microsoft::WRL::ComPtr;
 #include <stdexcept>
 #include <system_error>
 #include <sstream>
+#include <iomanip>
 
 
 #endif //PCH_H

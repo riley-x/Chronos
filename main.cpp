@@ -27,13 +27,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	args.classStyle = CS_DBLCLKS;
 	args.hbrBackground = CreateSolidBrush(RGB(0.2, 0.2, 0.2));
 	//args.lpszMenuName = MAKEINTRESOURCE(IDC_PARTHENOS);
+	args.hCursor = LoadCursor(NULL, IDC_ARROW);
 	args.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_CHRONOS));
 	args.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SMALL));
 	args.lpWindowName = szTitle;
 	args.nWidth = 70;
 	args.nHeight = 30;
 	args.x = 1920 - args.nWidth;
-	args.y = 1080 - args.nHeight;
+	args.y = 1030 - args.nHeight;	
 
 	win.Register(args);
 	if (!win.Create(args))
