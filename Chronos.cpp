@@ -18,22 +18,23 @@ LRESULT Chronos::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CREATE:
 		return OnCreate();
-	//case WM_COMMAND: // Command items from application menu; accelerators
-	//{
-	//	int wmId = LOWORD(wParam);
-	//	switch (wmId)
-	//	{
-	//	case IDM_ABOUT:
-	//		DialogBox(m_hInstance, MAKEINTRESOURCE(IDD_ABOUTBOX), m_hwnd, About);
-	//		break;
-	//	case IDA_COPY:
-	//		OnCopy();
-	//		break;
-	//	default:
-	//		return DefWindowProc(m_hwnd, uMsg, wParam, lParam);
-	//	}
-	//	return 0;
-	//}
+	case WM_COMMAND: // Command items from application menu; accelerators
+	{
+		if (HIWORD(wParam) == 0) // Menu
+		{
+			int wmId = LOWORD(wParam);
+			switch (wmId)
+			{
+			case IDM_EXIT:
+				::DestroyWindow(m_hwnd);
+				return 0;
+			case IDM_RESET:
+				ResetTimer();
+				return 0;
+			}
+		}
+		return DefWindowProc(m_hwnd, uMsg, wParam, lParam);
+	}
 	//case WM_CLOSE: {
 	//	if (MessageBox(m_hwnd, L"Really quit?", L"Parthenos", MB_OKCANCEL) == IDOK)
 	//	{
@@ -226,6 +227,8 @@ LRESULT Chronos::OnTimer(WPARAM wParam, LPARAM lParam)
 
 LRESULT Chronos::OnContextMenu(POINT point)
 {
+	HMENU hPopupMenu = GetSubMenu(LoadMenu(m_hInstance, L"ContextMenu"), 0);;
+	TrackPopupMenuEx(hPopupMenu, TPM_BOTTOMALIGN | TPM_RIGHTALIGN, point.x, point.y, m_hwnd, NULL);
 	return 0;
 }
 
