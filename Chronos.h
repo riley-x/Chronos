@@ -21,4 +21,5 @@ private:
 
 	LRESULT OnCreate();
 	LRESULT OnPaint();
+	LRESULT OnSize();
 };

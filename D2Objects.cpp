@@ -33,7 +33,7 @@ void D2Objects::CreateLifetimeResources(HWND window)
 		reinterpret_cast<void**>(dxFactory.GetAddressOf())
 	));
 
-	// Allocate a descriptor.
+	// Set the description for the swap chain.
 	RECT rect = {};
 	GetClientRect(window, &rect);
 	DXGI_SWAP_CHAIN_DESC1 description = {};
@@ -46,6 +46,7 @@ void D2Objects::CreateLifetimeResources(HWND window)
 	description.Width = rect.right - rect.left;
 	description.Height = rect.bottom - rect.top;
 
+	// Create the swap chain, targeting composition instead of a hwnd
 	HR(dxFactory->CreateSwapChainForComposition(
 		dxgiDevice.Get(),
 		&description,
@@ -76,28 +77,31 @@ void D2Objects::CreateLifetimeResources(HWND window)
 	// Set DPI
 	deviceContext->SetDpi(DPIScale::DPIX(), DPIScale::DPIY());
 
-
-
+	// Create the DirectComposition device using the original Direct3D device's DXGI interface.
 	HR(DCompositionCreateDevice(
 		dxgiDevice.Get(),
 		__uuidof(dcompDevice),
 		reinterpret_cast<void**>(dcompDevice.GetAddressOf())
 	));
 
-
+	// Create a target for the window
 	HR(dcompDevice->CreateTargetForHwnd(
 		window,
 		true, // Top most
 		target.GetAddressOf()
 	));
 
+	// Get the DirectComposition visual for the target, and set its contents to our swap chain
 	HR(dcompDevice->CreateVisual(visual.GetAddressOf()));
 	HR(visual->SetContent(m_swapChain.Get()));
+
+	// Set our only visual as the root of the tree of visuals
 	HR(target->SetRoot(visual.Get()));
+
+	// Commit the changes to the device
 	HR(dcompDevice->Commit());
 
-
-	CreateGraphicsResources(window);
+	// Create brushes, styles, etc.
 	CreateDrawingResources();
 }
 
@@ -190,7 +194,7 @@ void D2Objects::CreateDrawingResources()
 }
 
 
-// Resizes pDXGISwapChain, recreates pDirect2DBackBuffer
+// Resizes m_swapChain, recreates surface and bitmap
 void D2Objects::CreateGraphicsResources(HWND hwnd)
 {
 	// I.e. DiscardGraphicsResources() was called
@@ -239,5 +243,6 @@ void D2Objects::DiscardGraphicsResources()
 {
 	deviceContext->SetTarget(NULL);
 	bitmap.Reset();
+	surface.Reset();
 }
 

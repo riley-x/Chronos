@@ -75,7 +75,7 @@ public:
 
 	// Statics
 	static DWORD const style = WS_POPUP | WS_VISIBLE;
-	static DWORD const exStyle = WS_EX_NOREDIRECTIONBITMAP;
+	static DWORD const exStyle = WS_EX_NOREDIRECTIONBITMAP | WS_EX_TOPMOST;
 
 	// Constructors
 	BaseWindow() : m_wsClassName(L"BASE WINDOW"), m_hwnd(NULL), m_hInstance(NULL) { }
@@ -181,7 +181,7 @@ private:
 		// allow resizing outside the visible window frame.
 		// This implementation does not replicate that behavior.
 
-		bool borderless_resize = false;  // should the window allow resizing by dragging the borders while borderless
+		bool borderless_resize = true;  // should the window allow resizing by dragging the borders while borderless
 		bool borderless_drag = true; // should the window allow moving my dragging the client area
 
 		const POINT border{

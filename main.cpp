@@ -30,10 +30,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	args.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_CHRONOS));
 	args.hIconSm = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_SMALL));
 	args.lpWindowName = szTitle;
-	args.x = 1000;
-	args.y = 700;
-	args.nWidth = 200;
-	args.nHeight = 200;
+	args.nWidth = 70;
+	args.nHeight = 30;
+	args.x = 1920 - args.nWidth;
+	args.y = 1080 - args.nHeight;
 
 	win.Register(args);
 	if (!win.Create(args))

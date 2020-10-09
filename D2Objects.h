@@ -9,14 +9,16 @@ class D2Objects
 
 public:
 	enum Formats { Segoe10, Segoe12, Segoe14, Segoe18, nFormats };
+	static float FontSize(Formats f);
 
-	void CreateLifetimeResources(HWND hwnd);
-	void CreateGraphicsResources(HWND hwnd);
-	void DiscardGraphicsResources();
+	void CreateLifetimeResources(HWND hwnd); // To be called on initialization
+	void CreateGraphicsResources(HWND hwnd); // To be called as needed (i.e. after calling DiscardGraphicsResources())
+	void DiscardGraphicsResources(); // To be called as needed (i.e. on resizing the window)
 
 	ID2D1DeviceContext* dc() const { return deviceContext.Get(); }
 	ID2D1SolidColorBrush* brush() const { return solidBrush.Get(); }
 	IDXGISwapChain1* swapChain() const { return m_swapChain.Get(); }
+	IDWriteTextFormat* textFormat(Formats f) const { return pTextFormats[f].Get(); }
 
 private:
 
@@ -46,16 +48,13 @@ private:
 	ComPtr<ID2D1StrokeStyle1> pHairlineStyle;
 	ComPtr<IDWriteTextFormat> pTextFormats[nFormats];
 
-
-	////////////////////////////////////////////////////////
-	// Functions
-
+	// Helpers
 	void CreateDrawingResources();
 
 };
 
 
-inline float FontSize(D2Objects::Formats font)
+inline float D2Objects::FontSize(D2Objects::Formats font)
 {
 	switch (font)
 	{
@@ -68,7 +67,7 @@ inline float FontSize(D2Objects::Formats font)
 	case D2Objects::Segoe18:
 		return 18.0f;
 	default:
-		OutputDebugString(L"FontSize font not recognized\n");
+		OutputDebugString(L"FontSize() font not recognized\n");
 		return 0.0f;
 	}
 }

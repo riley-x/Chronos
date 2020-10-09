@@ -54,8 +54,12 @@ LRESULT Chronos::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 		return 0;
 	case WM_PAINT:
 		return OnPaint();
-	//case WM_SIZE:
-	//	return OnSize(wParam);
+	case WM_SIZE:
+		if (wParam == SIZE_MINIMIZED || wParam == SIZE_MAXIMIZED)
+			break;
+		else
+			return OnSize();
+
 	//case WM_MOUSEMOVE:
 	//	return OnMouseMove(
 	//		POINT{ GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) },
@@ -138,24 +142,48 @@ LRESULT Chronos::OnCreate()
 LRESULT Chronos::OnPaint()
 {
 	m_d2.CreateGraphicsResources(m_hwnd);
-	OutputDebugString(L"Paint\n");
 
 	PAINTSTRUCT ps;
 	BeginPaint(m_hwnd, &ps);
 
 	RECT rc;
 	GetClientRect(m_hwnd, &rc);
-	D2D1_RECT_F updateRect = DPIScale::PixelsToDips(ps.rcPaint);
+	D2D1_RECT_F clientRect = DPIScale::PixelsToDips(rc);
 
 	m_d2.dc()->BeginDraw();
 	m_d2.dc()->Clear();
 
-	m_d2.brush()->SetColor(D2D1::ColorF(0.6f, 0.0f, 0.7f, 0.5f));
-	m_d2.dc()->FillEllipse({ {50, 50}, 50, 50 }, m_d2.brush());
-	HR(m_d2.dc()->EndDraw());
+	m_d2.brush()->SetColor(D2D1::ColorF(0.9f, 0.5f, 1.0f, 1.0f));
+	m_d2.dc()->DrawText(
+		L"20:00",
+		static_cast<UINT32>(5),
+		m_d2.textFormat(D2Objects::Segoe18),
+		clientRect,
+		m_d2.brush()
+	);
 
+	//m_d2.brush()->SetColor(D2D1::ColorF(0xEFD3B5, 0.7));
+	//m_d2.dc()->FillRectangle(clientRect, m_d2.brush());
+
+	//float w2 = (clientRect.right - clientRect.left) / 2.0f;
+	//float h2 = (clientRect.bottom - clientRect.top) / 2.0f;
+	//m_d2.dc()->FillEllipse({ {w2, h2}, w2, h2 }, m_d2.brush());
+
+
+
+	HR(m_d2.dc()->EndDraw());
 	HR(m_d2.swapChain()->Present(1, 0)); 
 
 	EndPaint(m_hwnd, &ps);
+	return 0;
+}
+
+LRESULT Chronos::OnSize()
+{
+	if (m_d2.dc() != NULL)
+	{
+		m_d2.DiscardGraphicsResources();
+		InvalidateRect(m_hwnd, NULL, FALSE);
+	}
 	return 0;
 }
